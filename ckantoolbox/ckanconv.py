@@ -32,7 +32,6 @@ from biryani1.baseconv import (
     cleanup_text,
     empty_to_none,
     input_to_email,
-    input_to_int,
     make_input_to_url,
     not_none,
     pipe,
@@ -599,9 +598,8 @@ def make_ckan_json_to_package(drop_none_values = False, keep_value_order = False
                     ),
                 type = pipe(
                     test_isinstance(basestring),
-                    # TODO: Why is there 'None' in some types? Is this a bug only in my data.
-                    translate({u'None': None}),
                     test_in([u'dataset']),
+                    not_none,
                     ),
                 url = pipe(
                     test_isinstance(basestring),
@@ -754,8 +752,7 @@ def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = Fals
                     ),
                 revision_timestamp = ckan_json_to_iso8601_datetime_str,
                 size = pipe(
-                    test_isinstance(basestring),
-                    input_to_int,
+                    test_isinstance(int),
                     test_greater_or_equal(0),
                     ),
                 state = pipe(
