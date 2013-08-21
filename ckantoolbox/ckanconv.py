@@ -71,7 +71,7 @@ ckan_json_to_iso8601_datetime_str = pipe(
     )
 
 
-ckan_json_to_package_list = pipe(
+ckan_json_to_name_list = pipe(
     test_isinstance(list),
     uniform_sequence(
         pipe(
