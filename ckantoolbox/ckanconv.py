@@ -33,6 +33,7 @@ from biryani1.baseconv import (
     condition,
     default,
     empty_to_none,
+    first_match,
     input_to_email,
     input_to_int,
     make_input_to_url,
@@ -1093,8 +1094,10 @@ def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = Fals
                     # https://github.com/okfn/ckan/issues/931: Remove webstore_url from resources.
                     test_isinstance(basestring),
                     cleanup_line,  # May be ''.
-                    test_in([u'active']),
-#                    make_input_to_url(full = True),
+                    first_match(
+                        test_in([u'active']),
+                        make_input_to_url(full = True),
+                        ),
                     ),
                 ),
             drop_none_values = drop_none_values,
