@@ -6,7 +6,7 @@
 # By: Emmanuel Raviart <emmanuel@raviart.com>
 #
 # Copyright (C) 2013 Emmanuel Raviart
-# http://gitorious.org/etalab/ckan-toolbox
+# http://github.com/etalab/ckan-toolbox
 #
 # This file is part of CKAN-Toolbox.
 #

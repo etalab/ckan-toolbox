@@ -6,7 +6,7 @@
 # By: Emmanuel Raviart <emmanuel@raviart.com>
 #
 # Copyright (C) 2013 Emmanuel Raviart
-# http://gitorious.org/etalab/ckan-toolbox
+# http://github.com/etalab/ckan-toolbox
 #
 # This file is part of CKAN-Toolbox.
 #
@@ -59,7 +59,7 @@ setup(
     keywords = 'api ckan conversion data dataset python validation',
     license = 'http://www.fsf.org/licensing/licenses/agpl-3.0.html',
     long_description = '\n'.join(doc_lines[2:]),
-    url = 'http://gitorious.org/etalab/ckan-toolbox',
+    url = 'http://github.com/etalab/ckan-toolbox',
 
     packages = find_packages(exclude = ['ez_setup']),
     zip_safe = False,
