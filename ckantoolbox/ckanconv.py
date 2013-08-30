@@ -878,6 +878,9 @@ def make_ckan_json_to_package(drop_none_values = False, keep_value_order = False
                     ckan_json_to_state,
                     not_none,
                     ),
+                supplier = make_ckan_json_to_package_organization(drop_none_values = drop_none_values,
+                    keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
+                supplier_id = ckan_json_to_id,
                 tags = pipe(
                     test_isinstance(list),
                     uniform_sequence(
