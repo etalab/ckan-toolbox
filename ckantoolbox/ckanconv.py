@@ -149,6 +149,10 @@ def make_ckan_json_to_embedded_group(drop_none_values = False, keep_value_order 
                     test_isinstance(basestring),
                     test_in([u'private', u'public']),
                     ),
+                description = pipe(
+                    test_isinstance(basestring),
+                    cleanup_text,
+                    ),
                 id = ckan_json_to_id,
                 name = pipe(
                     test_isinstance(basestring),
