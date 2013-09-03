@@ -55,6 +55,20 @@ from biryani1.datetimeconv import (
     )
 
 
+def ckan_input_package_to_output_package(package, state = None):
+    if package is None:
+        return package, None
+    package = package.copy()
+    for key in (
+            'isopen',
+            'num_resources',
+            'num_tags',
+            'private',
+            ):
+        package.pop(key, None)
+    return package, None
+
+
 ckan_json_to_approval_status = pipe(
     test_isinstance(basestring),
     test_in([u'approved', u'pending']),
