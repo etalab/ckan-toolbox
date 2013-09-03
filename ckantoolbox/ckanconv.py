@@ -678,7 +678,7 @@ def make_ckan_json_to_organization_package(drop_none_values = False, keep_value_
                     ),
                 capacity = pipe(
                     test_isinstance(basestring),
-                    test_equals(u'organization'),
+                    test_in([u'private', u'public', u'organization']),
                     not_none,
                     ),
                 id = pipe(
