@@ -58,15 +58,80 @@ from biryani1.datetimeconv import (
 def ckan_input_package_to_output_package(package, state = None):
     if package is None:
         return package, None
+    errors = {}
     package = package.copy()
+
     for key in (
+            'capacity',
             'isopen',
             'num_resources',
             'num_tags',
             'private',
+            'revision_id',
+            'state',
+            'tracking_summary',
             ):
         package.pop(key, None)
-    return package, None
+
+    # Remove useless items from extras.
+    extras = [
+        dict(
+            key = extra['key'],
+            value = extra['value'],
+            )
+        for extra in (package.get('extras') or [])
+        if extra.get('value') is not None
+        ]
+    if extras:
+        package['extras'] = extras
+    else:
+        package.pop('extras', None)
+
+    resources, resources_error = uniform_sequence(ckan_input_resource_to_output_resource)(
+        package.get('resources'),state = state)
+    if resources_error is not None:
+        errors['resources'] = resources_error
+    if resources:
+        package['resources'] = resources
+    else:
+        package.pop('resources', None)
+
+    # Remove useless items from tags.
+    tags = [
+        dict(name = tag['name'])
+        for tag in (package.get('tags') or [])
+        ]
+    if tags:
+        package['tags'] = tags
+    else:
+        package.pop('tags', None)
+
+    return package, errors or None
+
+
+def ckan_input_resource_to_output_resource(resource, state = None):
+    if resource is None:
+        return resource, None
+    errors = {}
+    resource = resource.copy()
+
+    for key in (
+            'cache_last_updated',
+            'cache_url',
+            'cache_url_updated',
+            'hash',
+            'owner',
+            'position',
+            'resource_group_id',
+            'revision_id',
+            'size',
+            'state',
+            'tracking_summary',
+            'url_type',
+            ):
+        resource.pop(key, None)
+
+    return resource, errors or None
 
 
 ckan_json_to_approval_status = pipe(
@@ -207,6 +272,143 @@ def make_ckan_json_to_embedded_group(drop_none_values = False, keep_value_order 
         )
 
 
+def make_ckan_json_to_embedded_package(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
+    return pipe(
+        test_isinstance(dict),
+        struct(
+            dict(
+                author = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                author_email = pipe(
+                    test_isinstance(basestring),
+#                    input_to_email,
+                    cleanup_line,
+                    ),
+                capacity = pipe(
+                    test_isinstance(basestring),
+                    test_in([u'private', u'public', u'organization']),
+                    ),
+                creator_user_id = ckan_json_to_id,  # Set by ckanext-harvest
+                id = ckan_json_to_id,
+                license_id = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                maintainer = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                maintainer_email = pipe(
+                    test_isinstance(basestring),
+#                    input_to_email,
+                    cleanup_line,
+                    ),
+                metadata_modified = ckan_json_to_iso8601_date_str,
+                name = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    not_none,
+                    ),
+                notes = pipe(
+                    test_isinstance(basestring),
+                    cleanup_text,
+                    ),
+                owner_org = ckan_json_to_id,
+                private = test_isinstance(bool),
+                revision_id = ckan_json_to_id,
+                state = ckan_json_to_state,
+                title = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    not_none,
+                    ),
+                type = pipe(
+                    test_isinstance(basestring),
+                    translate({u'None': None}),
+                    test_in([u'dataset', u'harvest']),
+                    default(u'dataset'),
+                    ),
+                url = pipe(
+                    test_isinstance(basestring),
+                    make_input_to_url(add_prefix = u'http://', full = True),
+                    ),
+                version = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                ),
+            drop_none_values = drop_none_values,
+            keep_value_order = keep_value_order,
+            skip_missing_items = skip_missing_items,
+            ),
+        )
+
+
+def make_ckan_json_to_embedded_user(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
+    return pipe(
+        test_isinstance(dict),
+        struct(
+            dict(
+                about = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                activity_streams_email_notifications = test_isinstance(bool),
+                apikey = test_isinstance(basestring),
+                capacity = pipe(
+                    test_isinstance(basestring),
+                    test_in([u'admin', u'editor', u'member']),
+                    not_none,
+                    ),
+                created = ckan_json_to_iso8601_datetime_str,
+                display_name = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                email = pipe(
+                    test_isinstance(basestring),
+#                    input_to_email,
+                    cleanup_line,
+                    ),
+                email_hash = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                fullname = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                id = ckan_json_to_id,
+                name = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    not_none,
+                    ),
+                number_administered_packages = pipe(
+                    test_isinstance(int),
+                    test_greater_or_equal(0),
+                    ),
+                number_of_edits = pipe(
+                    test_isinstance(int),
+                    test_greater_or_equal(0),
+                    ),
+                openid = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    test_equals(u'TODO'),
+                    ),
+                reset_key = test_isinstance(basestring),
+                sysadmin = test_isinstance(bool),
+                ),
+            drop_none_values = drop_none_values,
+            keep_value_order = keep_value_order,
+            skip_missing_items = skip_missing_items,
+            ),
+        )
+
+
 def make_ckan_json_to_group(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
     return pipe(
         test_isinstance(dict),
@@ -300,7 +502,7 @@ def make_ckan_json_to_group(drop_none_values = False, keep_value_order = False, 
                     test_isinstance(list),
                     uniform_sequence(
                         pipe(
-                            make_ckan_json_to_group_package(drop_none_values = drop_none_values,
+                            make_ckan_json_to_embeded_package(drop_none_values = drop_none_values,
                                 keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
                             not_none,
                             ),
@@ -336,7 +538,7 @@ def make_ckan_json_to_group(drop_none_values = False, keep_value_order = False, 
                     test_isinstance(list),
                     uniform_sequence(
                         pipe(
-                            make_ckan_json_to_group_user(drop_none_values = drop_none_values,
+                            make_ckan_json_to_embedded_user(drop_none_values = drop_none_values,
                                 keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
                             not_none,
                             ),
@@ -344,154 +546,6 @@ def make_ckan_json_to_group(drop_none_values = False, keep_value_order = False, 
                     not_none,
                     empty_to_none,
                     ),
-                ),
-            drop_none_values = drop_none_values,
-            keep_value_order = keep_value_order,
-            skip_missing_items = skip_missing_items,
-            ),
-        )
-
-
-def make_ckan_json_to_group_package(drop_none_values = False, keep_value_order = False,
-        skip_missing_items = False):
-    return pipe(
-        test_isinstance(dict),
-        struct(
-            dict(
-                author = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                author_email = pipe(
-                    test_isinstance(basestring),
-#                    input_to_email,
-                    cleanup_line,
-                    ),
-                capacity = pipe(
-                    test_isinstance(basestring),
-                    test_in([u'private', u'public']),
-                    ),
-                id = ckan_json_to_id,
-                license_id = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                maintainer = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                maintainer_email = pipe(
-                    test_isinstance(basestring),
-#                    input_to_email,
-                    cleanup_line,
-                    ),
-                name = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    not_none,
-                    ),
-                notes = pipe(
-                    test_isinstance(basestring),
-                    cleanup_text,
-                    ),
-                owner_org = ckan_json_to_id,
-#                private = pipe(
-#                    test_isinstance(bool),
-#                    not_none,
-#                    ),
-                revision_id = ckan_json_to_id,
-                state = ckan_json_to_state,
-                title = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    not_none,
-                    ),
-                type = pipe(
-                    test_isinstance(basestring),
-                    translate({u'None': None}),
-                    test_in([u'dataset']),
-                    ),
-                url = pipe(
-                    test_isinstance(basestring),
-                    make_input_to_url(add_prefix = u'http://', full = True),
-                    ),
-                version = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                ),
-            drop_none_values = drop_none_values,
-            keep_value_order = keep_value_order,
-            skip_missing_items = skip_missing_items,
-            ),
-        )
-
-
-def make_ckan_json_to_group_user(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
-    return pipe(
-        test_isinstance(dict),
-        struct(
-            dict(
-                about = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-#                activity_streams_email_notifications = pipe(
-#                    test_isinstance(bool),
-#                    not_none,
-#                    ),
-#                apikey = pipe(
-#                    test_isinstance(basestring),
-#                    not_none,
-#                    ),
-                capacity = pipe(
-                    test_isinstance(basestring),
-                    test_in([u'admin', u'editor', u'member']),
-                    not_none,
-                    ),
-                created = ckan_json_to_iso8601_datetime_str,
-                display_name = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-#                email = pipe(
-#                    test_isinstance(basestring),
-##                    input_to_email,
-#                    cleanup_line,
-#                    not_none,
-#                    ),
-                email_hash = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                fullname = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                id = ckan_json_to_id,
-                name = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    not_none,
-                    ),
-                number_administered_packages = pipe(
-                    test_isinstance(int),
-                    test_greater_or_equal(0),
-                    ),
-                number_of_edits = pipe(
-                    test_isinstance(int),
-                    test_greater_or_equal(0),
-                    ),
-                openid = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    test_equals(u'TODO'),
-                    ),
-#                reset_key = test_isinstance(basestring),
-#                sysadmin = pipe(
-#                    test_isinstance(bool),
-#                    not_none,
-#                    ),
                 ),
             drop_none_values = drop_none_values,
             keep_value_order = keep_value_order,
@@ -604,7 +658,7 @@ def make_ckan_json_to_organization(drop_none_values = False, keep_value_order = 
                     test_isinstance(list),
                     uniform_sequence(
                         pipe(
-                            make_ckan_json_to_organization_package(drop_none_values = drop_none_values,
+                            make_ckan_json_to_embedded_package(drop_none_values = drop_none_values,
                                 keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
                             not_none,
                             ),
@@ -645,99 +699,13 @@ def make_ckan_json_to_organization(drop_none_values = False, keep_value_order = 
                     test_isinstance(list),
                     uniform_sequence(
                         pipe(
-                            make_ckan_json_to_user(drop_none_values = drop_none_values,
+                            make_ckan_json_to_embedded_user(drop_none_values = drop_none_values,
                                 keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
                             not_none,
                             ),
                         ),
                     not_none,
                     empty_to_none,
-                    ),
-                ),
-            drop_none_values = drop_none_values,
-            keep_value_order = keep_value_order,
-            skip_missing_items = skip_missing_items,
-            ),
-        )
-
-
-def make_ckan_json_to_organization_package(drop_none_values = False, keep_value_order = False,
-        skip_missing_items = False):
-    return pipe(
-        test_isinstance(dict),
-        struct(
-            dict(
-                author = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                author_email = pipe(
-                    test_isinstance(basestring),
-#                    input_to_email,
-                    cleanup_line,
-                    ),
-                capacity = pipe(
-                    test_isinstance(basestring),
-                    test_in([u'private', u'public', u'organization']),
-                    not_none,
-                    ),
-                id = pipe(
-                    ckan_json_to_id,
-                    not_none,
-                    ),
-                license_id = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                maintainer = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    ),
-                maintainer_email = pipe(
-                    test_isinstance(basestring),
-#                    input_to_email,
-                    cleanup_line,
-                    ),
-                name = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    not_none,
-                    ),
-                notes = pipe(
-                    test_isinstance(basestring),
-                    cleanup_text,
-                    ),
-                owner_org = ckan_json_to_id,
-                private = pipe(
-                    test_isinstance(bool),
-                    not_none,
-                    ),
-                revision_id = pipe(
-                    ckan_json_to_id,
-                    not_none,
-                    ),
-                state = pipe(
-                    ckan_json_to_state,
-                    not_none,
-                    ),
-                title = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
-                    not_none,
-                    ),
-                type = pipe(
-                    test_isinstance(basestring),
-                    translate({u'None': None}),
-                    test_in([u'dataset']),
-                    default(u'dataset'),
-                    ),
-                url = pipe(
-                    test_isinstance(basestring),
-                    make_input_to_url(add_prefix = u'http://', full = True),
-                    ),
-                version = pipe(
-                    test_isinstance(basestring),
-                    cleanup_line,
                     ),
                 ),
             drop_none_values = drop_none_values,
@@ -766,6 +734,7 @@ def make_ckan_json_to_package(drop_none_values = False, keep_value_order = False
                     test_isinstance(basestring),
                     test_in([u'private', u'public']),
                     ),
+                creator_user_id = ckan_json_to_id,  # Set by ckanext-harvest
                 extras = pipe(
                     test_isinstance(list),
                     uniform_sequence(
@@ -964,7 +933,7 @@ def make_ckan_json_to_package(drop_none_values = False, keep_value_order = False
                 type = pipe(
                     test_isinstance(basestring),
                     translate({u'None': None}),
-                    test_in([u'dataset']),
+                    test_in([u'dataset', u'harvest']),
                     default(u'dataset'),
                     ),
                 url = pipe(
@@ -1110,7 +1079,7 @@ def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = Fals
                 resource_type = pipe(
                     test_isinstance(basestring),
                     cleanup_line,
-                    test_in([u'api', 'file', 'file.upload', 'image', 'metadata', 'visualization']),
+                    test_in([u'api', 'documentation', 'file', 'file.upload', 'image', 'metadata', 'visualization']),
                     ),
                 revision_id = pipe(
                     ckan_json_to_id,
@@ -1135,6 +1104,10 @@ def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = Fals
                 url_error = pipe(
                     test_isinstance(basestring),
                     cleanup_line,
+                    ),
+                url_type = pipe(
+                    test_isinstance(basestring),
+                    test_in(['TODO']),
                     ),
                 webstore_last_updated = ckan_json_to_iso8601_date_str,
                 webstore_url = pipe(
