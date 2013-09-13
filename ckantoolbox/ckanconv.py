@@ -63,7 +63,10 @@ def ckan_input_package_to_output_package(package, state = None):
 
     for key in (
             'capacity',
+            'id',
             'isopen',
+            'license_title',
+            'license_url',
             'num_resources',
             'num_tags',
             'private',
@@ -120,6 +123,7 @@ def ckan_input_resource_to_output_resource(resource, state = None):
             'cache_url',
             'cache_url_updated',
             'hash',
+            'id',
             'owner',
             'position',
             'resource_group_id',
