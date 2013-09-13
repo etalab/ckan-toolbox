@@ -34,7 +34,7 @@ from biryani1.baseconv import (
     default,
     empty_to_none,
     first_match,
-    input_to_email,
+#    input_to_email,
     input_to_int,
     make_input_to_url,
     not_none,
@@ -91,7 +91,7 @@ def ckan_input_package_to_output_package(package, state = None):
         package.pop('extras', None)
 
     resources, resources_error = uniform_sequence(ckan_input_resource_to_output_resource)(
-        package.get('resources'),state = state)
+        package.get('resources'), state = state)
     if resources_error is not None:
         errors['resources'] = resources_error
     if resources:
