@@ -506,7 +506,7 @@ def make_ckan_json_to_group(drop_none_values = False, keep_value_order = False, 
                     test_isinstance(list),
                     uniform_sequence(
                         pipe(
-                            make_ckan_json_to_embeded_package(drop_none_values = drop_none_values,
+                            make_ckan_json_to_embedded_package(drop_none_values = drop_none_values,
                                 keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
                             not_none,
                             ),
