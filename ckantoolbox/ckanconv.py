@@ -1111,6 +1111,7 @@ def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = Fals
                     ),
                 url_type = pipe(
                     test_isinstance(basestring),
+                    translate({u'None': None}),
                     test_in(['TODO']),
                     ),
                 webstore_last_updated = ckan_json_to_iso8601_date_str,
