@@ -34,10 +34,12 @@ from biryani1.baseconv import (
     default,
     empty_to_none,
     first_match,
+    function,
 #    input_to_email,
     input_to_int,
     make_input_to_url,
     not_none,
+    noop,
     pipe,
     struct,
     test_equals,
@@ -52,6 +54,77 @@ from biryani1.datetimeconv import (
     datetime_to_iso8601_str,
     iso8601_input_to_date,
     iso8601_input_to_datetime,
+    )
+
+
+ckan_input_embedded_package_to_output_embedded_package = pipe(
+    function(lambda package: None if package.get('state') == 'deleted' else package),
+    struct(
+        dict(
+            id = noop,
+            ),
+        default = 'drop',
+        ),
+    )
+
+
+ckan_input_embedded_packages_to_output_embedded_packages = pipe(
+    uniform_sequence(
+        ckan_input_embedded_package_to_output_embedded_package,
+        drop_none_items = True,
+        ),
+    default([]),
+    )
+
+
+
+ckan_input_embedded_user_to_output_embedded_user = struct(
+    dict(
+        capacity = noop,
+        name = noop,
+        ),
+    default = 'drop',
+    )
+
+
+ckan_input_embedded_users_to_output_embedded_users = pipe(
+    uniform_sequence(
+        ckan_input_embedded_user_to_output_embedded_user,
+        drop_none_items = True,
+        ),
+    default([]),
+    )
+
+
+ckan_input_extras_to_output_extras = pipe(
+    uniform_sequence(
+        pipe(
+            function(lambda extra: None if extra.get('deleted', False) or extra.get('state') == 'deleted' else extra),
+            struct(
+                dict(
+                    key = noop,
+                    value = noop,
+                    ),
+                default = 'drop',
+                ),
+            ),
+        drop_none_items = True,
+        ),
+    default([]),
+    )
+
+
+ckan_input_organization_to_output_organization = struct(
+    dict(
+        description = noop,
+        extras = ckan_input_extras_to_output_extras,
+        image_url = noop,
+        name = noop,
+        packages = ckan_input_embedded_packages_to_output_embedded_packages,
+        title = noop,
+        users = ckan_input_embedded_users_to_output_embedded_users,
+        ),
+    default = 'drop',
     )
 
 
