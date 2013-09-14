@@ -226,6 +226,13 @@ ckan_json_to_group_type = pipe(
 ckan_json_to_id = test_isinstance(basestring)
 
 
+ckan_json_to_image_url = pipe(
+    test_isinstance(basestring),
+    make_input_to_url(add_prefix = u'http://', full = True, schemes = (u'data', u'http', u'https')),
+    function(lambda url: None if url.startswith(u'data:') else url),
+    )
+
+
 ckan_json_to_iso8601_date_str = pipe(
     test_isinstance(basestring),
     iso8601_input_to_date,
@@ -325,10 +332,7 @@ def make_ckan_json_to_embedded_group(drop_none_values = False, keep_value_order 
                     cleanup_text,
                     ),
                 id = ckan_json_to_id,
-                image_url = pipe(
-                    test_isinstance(basestring),
-                    make_input_to_url(add_prefix = u'http://', full = True),
-                    ),
+                image_url = ckan_json_to_image_url,
                 name = pipe(
                     test_isinstance(basestring),
                     cleanup_line,
@@ -566,10 +570,7 @@ def make_ckan_json_to_group(drop_none_values = False, keep_value_order = False, 
                     ckan_json_to_id,
                     not_none,
                     ),
-                image_url = pipe(
-                    test_isinstance(basestring),
-                    make_input_to_url(add_prefix = u'http://', full = True),
-                    ),
+                image_url = ckan_json_to_image_url,
                 name = pipe(
                     test_isinstance(basestring),
                     cleanup_line,
@@ -708,10 +709,7 @@ def make_ckan_json_to_organization(drop_none_values = False, keep_value_order = 
                     ckan_json_to_id,
                     not_none,
                     ),
-                image_url = pipe(
-                    test_isinstance(basestring),
-                    make_input_to_url(add_prefix = u'http://', full = True),
-                    ),
+                image_url = ckan_json_to_image_url,
                 is_organization = pipe(
                     test_isinstance(bool),
                     not_none,
@@ -1051,10 +1049,7 @@ def make_ckan_json_to_package_organization(drop_none_values = False, keep_value_
                     ckan_json_to_id,
                     not_none,
                     ),
-                image_url = pipe(
-                    test_isinstance(basestring),
-                    make_input_to_url(add_prefix = u'http://', full = True),
-                    ),
+                image_url = ckan_json_to_image_url,
                 is_organization = pipe(
                     test_isinstance(bool),
                     not_none,
