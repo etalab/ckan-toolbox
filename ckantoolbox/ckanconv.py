@@ -28,6 +28,7 @@
 
 
 from biryani1.baseconv import (
+    anything_to_bool,
     cleanup_line,
     cleanup_text,
     condition,
@@ -316,6 +317,64 @@ def make_ckan_json_to_datastore(drop_none_values = False, keep_value_order = Fal
         )
 
 
+def make_ckan_json_to_embedded_activity(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
+    return pipe(
+        test_isinstance(dict),
+        struct(
+            dict(
+                approved_timestamp = ckan_json_to_iso8601_datetime_str,
+                author = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    not_none,
+                    ),
+                groups = pipe(
+                    test_isinstance(list),
+                    uniform_sequence(
+                        pipe(
+                            test_isinstance(basestring),
+                            cleanup_line,
+                            not_none,
+                            ),
+                        ),
+                    empty_to_none,
+                    ),
+                id = pipe(
+                    ckan_json_to_id,
+                    not_none,
+                    ),
+                message = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
+                packages = pipe(
+                    test_isinstance(list),
+                    uniform_sequence(
+                        pipe(
+                            test_isinstance(basestring),
+                            cleanup_line,
+                            not_none,
+                            ),
+                        ),
+                    empty_to_none,
+                    ),
+                state = pipe(
+                    ckan_json_to_state,
+                    not_none,
+                    ),
+                timestamp = pipe(
+                    ckan_json_to_iso8601_datetime_str,
+                    not_none,
+                    ),
+                ),
+            drop_none_values = drop_none_values,
+            keep_value_order = keep_value_order,
+            skip_missing_items = skip_missing_items,
+            ),
+        )
+
+
+
 def make_ckan_json_to_embedded_group(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
     return pipe(
         test_isinstance(dict),
@@ -571,10 +630,19 @@ def make_ckan_json_to_group(drop_none_values = False, keep_value_order = False, 
                     not_none,
                     ),
                 image_url = ckan_json_to_image_url,
+                is_organization = test_isinstance(bool),
                 name = pipe(
                     test_isinstance(basestring),
                     cleanup_line,
                     not_none,
+                    ),
+                num_followers = pipe(
+                    test_isinstance(int),
+                    test_greater_or_equal(0),
+                    ),
+                package_count = pipe(
+                    test_isinstance(int),
+                    test_greater_or_equal(0),
                     ),
                 packages = pipe(
                     test_isinstance(list),
@@ -1088,6 +1156,68 @@ def make_ckan_json_to_package_organization(drop_none_values = False, keep_value_
         )
 
 
+def make_ckan_json_to_related(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
+    return pipe(
+        test_isinstance(dict),
+        remove_extras,
+        struct(
+            dict(
+                created = pipe(
+                    ckan_json_to_iso8601_datetime_str,
+                    not_none,
+                    ),
+                description = pipe(
+                    test_isinstance(basestring),
+                    cleanup_text,
+                    ),
+                featured = pipe(
+                    test_isinstance(int),
+                    anything_to_bool,
+                    not_none,
+                    ),
+                id = pipe(
+                    ckan_json_to_id,
+                    not_none,
+                    ),
+                image_url = ckan_json_to_image_url,
+                owner_id = ckan_json_to_id,
+                title = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    not_none,
+                    ),
+                type = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    test_in([
+                        u'api',
+                        'application',
+                        'idea',
+                        'news_article',
+                        'paper',
+                        'post',
+                        'smart_image',  # TODO: Obsolete, to remove.
+                        'smart_viewer',  # TODO: Obsolete, to remove.
+                        'visualization',
+                        ]),
+                    ),
+                url = pipe(
+                    test_isinstance(basestring),
+                    make_input_to_url(add_prefix = u'http://', full = True),
+                    ),
+                view_count = pipe(
+                    test_isinstance(int),
+                    test_greater_or_equal(0),
+                     not_none,
+                    ),
+                ),
+            drop_none_values = drop_none_values,
+            keep_value_order = keep_value_order,
+            skip_missing_items = skip_missing_items,
+            ),
+        )
+
+
 def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
     return pipe(
         test_isinstance(dict),
@@ -1269,22 +1399,40 @@ def make_ckan_json_to_user(drop_none_values = False, keep_value_order = False, s
                     test_isinstance(basestring),
                     cleanup_line,
                     ),
+                activity = pipe(
+                    test_isinstance(list),
+                    uniform_sequence(
+                        pipe(
+                            make_ckan_json_to_embedded_activity(drop_none_values = drop_none_values,
+                                keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
+                            not_none,
+                            ),
+                        ),
+                    empty_to_none,
+                    ),
                 activity_streams_email_notifications = pipe(
                     test_isinstance(bool),
                     not_none,
                     ),
-                apikey = pipe(
-                    test_isinstance(basestring),
-                    not_none,
-                    ),
+                apikey = test_isinstance(basestring),
                 capacity = pipe(
                     test_isinstance(basestring),
                     test_in([u'admin', u'editor', u'member']),
-                    not_none,
                     ),
                 created = pipe(
                     ckan_json_to_iso8601_datetime_str,
                     not_none,
+                    ),
+                datasets = pipe(
+                    test_isinstance(list),
+                    uniform_sequence(
+                        pipe(
+                            make_ckan_json_to_package(drop_none_values = drop_none_values,
+                                keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
+                            not_none,
+                            ),
+                        ),
+                    empty_to_none,
                     ),
                 display_name = pipe(
                     test_isinstance(basestring),
@@ -1294,7 +1442,6 @@ def make_ckan_json_to_user(drop_none_values = False, keep_value_order = False, s
                     test_isinstance(basestring),
 #                    input_to_email,
                     cleanup_line,
-                    not_none,
                     ),
                 email_hash = pipe(
                     test_isinstance(basestring),
@@ -1312,6 +1459,10 @@ def make_ckan_json_to_user(drop_none_values = False, keep_value_order = False, s
                     test_isinstance(basestring),
                     cleanup_line,
                     not_none,
+                    ),
+                num_followers = pipe(
+                    test_isinstance(int),
+                    test_greater_or_equal(0),
                     ),
                 number_administered_packages = pipe(
                     test_isinstance(int),
