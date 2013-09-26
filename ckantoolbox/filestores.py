@@ -5,7 +5,7 @@
 # CKAN-Toolbox -- Various modules that handle CKAN API and data
 # By: Emmanuel Raviart <emmanuel@raviart.com>
 #
-# Copyright (C) 2013 Emmanuel Raviart
+# Copyright (C) 2013 Etalab
 # http://github.com/etalab/ckan-toolbox
 #
 # This file is part of CKAN-Toolbox.
