@@ -201,6 +201,7 @@ def ckan_input_resource_to_output_resource(resource, state = None):
             'owner',
             'position',
             'resource_group_id',
+            'resource_type',
             'revision_id',
             'size',
             'state',
