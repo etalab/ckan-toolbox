@@ -212,7 +212,7 @@ def ckan_input_resource_to_output_resource(resource, state = None):
 
     format_ = resource.get('format')
     if format_ is not None:
-        resource['format'] = format_.lower()
+        resource['format'] = format_.upper()
 
     return resource, errors or None
 
