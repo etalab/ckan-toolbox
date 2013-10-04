@@ -1196,14 +1196,14 @@ def make_ckan_json_to_related(drop_none_values = False, keep_value_order = False
                     cleanup_line,
                     test_in([
                         u'api',
-                        'application',
-                        'idea',
-                        'news_article',
-                        'paper',
-                        'post',
-                        'smart_image',  # TODO: Obsolete, to remove.
-                        'smart_viewer',  # TODO: Obsolete, to remove.
-                        'visualization',
+                        u'application',
+                        u'idea',
+                        u'news_article',
+                        u'paper',
+                        u'post',
+                        u'smart_image',  # TODO: Obsolete, to remove.
+                        u'smart_viewer',  # TODO: Obsolete, to remove.
+                        u'visualization',
                         ]),
                     ),
                 url = pipe(
