@@ -268,7 +268,7 @@ ckan_json_to_name_list = pipe(
 
 ckan_json_to_package_state = pipe(
     test_isinstance(basestring),
-    test_in([u'active', u'draft', u'deleted']),
+    test_in([u'active', u'draft', u'draft-complete', u'deleted']),
     )
 
 
