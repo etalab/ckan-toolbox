@@ -1167,10 +1167,19 @@ def make_ckan_json_to_related(drop_none_values = False, keep_value_order = False
         remove_extras,
         struct(
             dict(
-                created = pipe(
-                    ckan_json_to_iso8601_datetime_str,
-                    not_none,
+                __extras = pipe(
+                    test_isinstance(dict),
+                    struct(
+                        dict(
+                            view_count = pipe(
+                                test_isinstance(int),
+                                test_greater_or_equal(0),
+                                ),
+                            ),
+                        ),
                     ),
+                created = ckan_json_to_iso8601_datetime_str,
+                dataset_id = ckan_json_to_id,  # CKANExt-fedmsg specific
                 description = pipe(
                     test_isinstance(basestring),
                     cleanup_text,
@@ -1213,7 +1222,6 @@ def make_ckan_json_to_related(drop_none_values = False, keep_value_order = False
                 view_count = pipe(
                     test_isinstance(int),
                     test_greater_or_equal(0),
-                     not_none,
                     ),
                 ),
             drop_none_values = drop_none_values,
