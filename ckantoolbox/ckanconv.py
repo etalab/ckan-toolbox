@@ -78,7 +78,6 @@ ckan_input_embedded_packages_to_output_embedded_packages = pipe(
     )
 
 
-
 ckan_input_embedded_user_to_output_embedded_user = struct(
     dict(
         capacity = noop,
@@ -267,6 +266,12 @@ ckan_json_to_name_list = pipe(
     )
 
 
+ckan_json_to_package_state = pipe(
+    test_isinstance(basestring),
+    test_in([u'active', u'draft', u'deleted']),
+    )
+
+
 ckan_json_to_state = pipe(
     test_isinstance(basestring),
     test_in([u'active', u'deleted']),
@@ -379,7 +384,6 @@ def make_ckan_json_to_embedded_activity(drop_none_values = False, keep_value_ord
         )
 
 
-
 def make_ckan_json_to_embedded_group(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
     return pipe(
         test_isinstance(dict),
@@ -463,7 +467,7 @@ def make_ckan_json_to_embedded_package(drop_none_values = False, keep_value_orde
                 owner_org = ckan_json_to_id,
                 private = test_isinstance(bool),
                 revision_id = ckan_json_to_id,
-                state = ckan_json_to_state,
+                state = ckan_json_to_package_state,
                 title = pipe(
                     test_isinstance(basestring),
                     cleanup_line,
@@ -1036,7 +1040,7 @@ def make_ckan_json_to_package(drop_none_values = False, keep_value_order = False
                     not_none,
                     ),
                 state = pipe(
-                    ckan_json_to_state,
+                    ckan_json_to_package_state,
                     not_none,
                     ),
                 supplier = make_ckan_json_to_package_organization(drop_none_values = drop_none_values,
