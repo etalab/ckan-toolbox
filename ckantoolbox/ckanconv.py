@@ -934,6 +934,10 @@ def make_ckan_json_to_package(drop_none_values = False, keep_value_order = False
                         ),
                     empty_to_none,
                     ),
+                frequency = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
                 groups = pipe(
                     test_isinstance(list),
                     uniform_sequence(
