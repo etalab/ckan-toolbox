@@ -58,7 +58,7 @@ from biryani1.datetimeconv import (
     )
 
 
-#year_or_month_or_day_re = re.compile(ur'[0-2]\d{3}(-(0[1-9]|1[0-2])(-([0-2][1-9]|3[0-1]))?)?$')
+#year_or_month_or_day_re = re.compile(ur'[0-2]\d{3}(-(0[1-9]|1[0-2])(-([0-2]\d|3[0-1]))?)?$')
 
 
 ckan_input_embedded_package_to_output_embedded_package = pipe(
