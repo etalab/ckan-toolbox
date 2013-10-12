@@ -58,6 +58,9 @@ from biryani1.datetimeconv import (
     )
 
 
+#year_or_month_or_day_re = re.compile(ur'[0-2]\d{3}(-(0[1-9]|1[0-2])(-([0-2][1-9]|3[0-1]))?)?$')
+
+
 ckan_input_embedded_package_to_output_embedded_package = pipe(
     function(lambda package: None if package.get('state') == 'deleted' else package),
     struct(
@@ -1057,14 +1060,14 @@ def make_ckan_json_to_package(drop_none_values = False, keep_value_order = False
                         ),
                     empty_to_none,
                     ),
-#                temporal_coverage_from = ckan_json_to_iso8601_date_str,
                 temporal_coverage_from = pipe(
                     test_isinstance(basestring),
+#                    test(year_or_month_or_day_re.match, error = N_(u'Invalid year or month or day')),
                     cleanup_line,
                     ),
-#                temporal_coverage_to = ckan_json_to_iso8601_date_str,
                 temporal_coverage_to = pipe(
                     test_isinstance(basestring),
+#                    test(year_or_month_or_day_re.match, error = N_(u'Invalid year or month or day')),
                     cleanup_line,
                     ),
                 territorial_coverage = pipe(
