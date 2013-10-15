@@ -57,8 +57,30 @@ from biryani1.datetimeconv import (
     iso8601_input_to_datetime,
     )
 
+from . import texthelpers
+
 
 #year_or_month_or_day_re = re.compile(ur'[0-2]\d{3}(-(0[1-9]|1[0-2])(-([0-2]\d|3[0-1]))?)?$')
+
+
+ckan_input_embedded_group_to_output_embedded_group = pipe(
+    function(lambda group: None if group.get('state') == 'deleted' else group),
+    struct(
+        dict(
+            id = noop,
+            ),
+        default = 'drop',
+        ),
+    )
+
+
+ckan_input_embedded_groups_to_output_embedded_groups = pipe(
+    uniform_sequence(
+        ckan_input_embedded_group_to_output_embedded_group,
+        drop_none_items = True,
+        ),
+    default([]),
+    )
 
 
 ckan_input_embedded_package_to_output_embedded_package = pipe(
@@ -114,6 +136,21 @@ ckan_input_extras_to_output_extras = pipe(
         drop_none_items = True,
         ),
     default([]),
+    )
+
+
+ckan_input_group_to_output_group = struct(
+    dict(
+        description = noop,
+        extras = ckan_input_extras_to_output_extras,
+        groups = ckan_input_embedded_groups_to_output_embedded_groups,
+        image_url = noop,
+        name = noop,
+        packages = ckan_input_embedded_packages_to_output_embedded_packages,
+        title = noop,
+        users = ckan_input_embedded_users_to_output_embedded_users,
+        ),
+    default = 'drop',
     )
 
 
@@ -279,6 +316,14 @@ ckan_json_to_state = pipe(
     test_isinstance(basestring),
     test_in([u'active', u'deleted']),
     )
+
+
+def input_to_ckan_name(value, state = None):
+    return texthelpers.namify(value) or None, None
+
+
+def input_to_ckan_tag_name(value, state = None):
+    return texthelpers.tag_namify(value) or None, None
 
 
 def make_ckan_json_to_datastore(drop_none_values = False, keep_value_order = False, skip_missing_items = False):
