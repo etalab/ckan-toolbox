@@ -245,6 +245,7 @@ def ckan_input_resource_to_output_resource(resource, state = None):
             'size',
             'state',
             'tracking_summary',
+            'URI',
             'url_type',
             ):
         resource.pop(key, None)
@@ -1368,6 +1369,10 @@ def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = Fals
                 state = ckan_json_to_state,
                 tracking_summary = make_ckan_json_to_tracking_summary(drop_none_values = drop_none_values,
                     keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
+                URI = pipe(
+                    test_isinstance(basestring),
+                    make_input_to_url(add_prefix = u'http://', full = True),
+                    ),
                 url = pipe(
                     test_isinstance(basestring),
                     make_input_to_url(add_prefix = u'http://', full = True),
