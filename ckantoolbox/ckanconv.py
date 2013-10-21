@@ -1375,7 +1375,8 @@ def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = Fals
                     ),
                 url = pipe(
                     test_isinstance(basestring),
-                    make_input_to_url(add_prefix = u'http://', full = True),
+                    # make_input_to_url(add_prefix = u'http://', full = True),
+                    cleanup_line,
                     ),
                 url_error = pipe(
                     test_isinstance(basestring),
