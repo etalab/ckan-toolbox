@@ -176,7 +176,6 @@ def ckan_input_package_to_output_package(package, state = None):
 
     for key in (
             'capacity',
-            'id',
             'isopen',
             'license_title',
             'license_url',
