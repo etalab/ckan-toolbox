@@ -182,6 +182,8 @@ def ckan_input_package_to_output_package(package, state = None):
             'num_resources',
             'num_tags',
             'private',
+            'relationships_as_object',
+            'relationships_as_subject',
             'revision_id',
             'state',
             'tracking_summary',
@@ -1052,26 +1054,10 @@ def make_ckan_json_to_package(drop_none_values = False, keep_value_order = False
                     keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
                 owner_org = ckan_json_to_id,
                 private = test_isinstance(bool),
-                relationships_as_object = pipe(
-                    test_isinstance(list),
-                    uniform_sequence(
-                        pipe(
-                            test_equals('TODO'),
-                            not_none,
-                            ),
-                        ),
-                    empty_to_none,
-                    ),
-                relationships_as_subject = pipe(
-                    test_isinstance(list),
-                    uniform_sequence(
-                        pipe(
-                            test_equals('TODO'),
-                            not_none,
-                            ),
-                        ),
-                    empty_to_none,
-                    ),
+                relationships_as_object = make_ckan_json_to_package_relationships(drop_none_values = drop_none_values,
+                    keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
+                relationships_as_subject = make_ckan_json_to_package_relationships(drop_none_values = drop_none_values,
+                    keep_value_order = keep_value_order, skip_missing_items = skip_missing_items),
                 resources = pipe(
                     test_isinstance(list),
                     uniform_sequence(
@@ -1214,6 +1200,76 @@ def make_ckan_json_to_package_organization(drop_none_values = False, keep_value_
             keep_value_order = keep_value_order,
             skip_missing_items = skip_missing_items,
             ),
+        )
+
+
+def make_ckan_json_to_package_relationships(drop_none_values = False, keep_value_order = False,
+        skip_missing_items = False):
+    return pipe(
+        test_isinstance(list),
+        uniform_sequence(
+            pipe(
+                test_isinstance(dict),
+                struct(
+                    dict(
+                        __extras = pipe(
+                            test_isinstance(dict),
+                            struct(
+                                dict(
+                                    object_package_id = pipe(
+                                        ckan_json_to_id,
+                                        not_none,
+                                        ),
+                                    revision_id = pipe(
+                                        ckan_json_to_id,
+                                        not_none,
+                                        ),
+                                    revision_timestamp = pipe(
+                                        ckan_json_to_iso8601_datetime_str,
+                                        not_none,
+                                        ),
+                                    subject_package_id = pipe(
+                                        ckan_json_to_id,
+                                        not_none,
+                                        ),
+                                    ),
+                                drop_none_values = drop_none_values,
+                                keep_value_order = keep_value_order,
+                                skip_missing_items = skip_missing_items,
+                                ),
+                            not_none,
+                            ),
+                        comment = pipe(
+                            test_isinstance(basestring),
+                            cleanup_text,
+                            ),
+                        id = pipe(
+                            ckan_json_to_id,
+                            not_none,
+                            ),
+                        type = pipe(
+                            test_isinstance(basestring),
+                            test_in([
+                                u'child_of',
+                                u'dependency_of',
+                                u'depends_on',
+                                u'derives_from',
+                                u'has_derivation',
+                                u'linked_from',
+                                u'links_to',
+                                u'parent_of',
+                                ]),
+                            not_none,
+                            ),
+                        ),
+                    drop_none_values = drop_none_values,
+                    keep_value_order = keep_value_order,
+                    skip_missing_items = skip_missing_items,
+                    ),
+                not_none,
+                ),
+            ),
+        empty_to_none,
         )
 
 
