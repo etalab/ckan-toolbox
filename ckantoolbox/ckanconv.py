@@ -449,7 +449,12 @@ def make_ckan_json_to_embedded_group(drop_none_values = False, keep_value_order 
                     test_isinstance(basestring),
                     cleanup_text,
                     ),
+                display_name = pipe(
+                    test_isinstance(basestring),
+                    cleanup_line,
+                    ),
                 id = ckan_json_to_id,
+                image_display_url = ckan_json_to_image_url,
                 image_url = ckan_json_to_image_url,
                 name = pipe(
                     test_isinstance(basestring),
@@ -1440,7 +1445,9 @@ def make_ckan_json_to_resource(drop_none_values = False, keep_value_order = Fals
                 url_type = pipe(
                     test_isinstance(basestring),
                     translate({u'None': None}),
-                    test_in(['TODO']),
+                    test_in([
+                        'upload',
+                        ]),
                     ),
                 webstore_last_updated = ckan_json_to_iso8601_date_str,
                 webstore_url = pipe(
